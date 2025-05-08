@@ -16,6 +16,6 @@ function guardarDatos() {
 
     if (clave && valor) {
         localStorage.setItem(clave, valor);
-        alert("Datos guardados correctamente.");
+        alert("Datos guardados correctamente");
     }
 }
