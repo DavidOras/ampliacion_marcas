@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Page Title</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <style>
+        canvas{
+            background: grey;
+            border: 2px solid black;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let p1 = {
+            x: 50,
+            y: 150,
+            w: 30,
+            h: 30,
+            paso: 5
+        };
+
+        let c1 = {
+            x: p1.x + p1.w, 
+            y: p1.y,
+            r: 5, //Radio
+            s: 0, //Inicio del circulo
+            e: Math.PI * 2 //medio circulo * 2 para que sea un circulo entero
+        }
+
+        const diana = {
+            x: 700,
+            y: 150,
+            w: 50,
+            h: 50,
+            imagen: new Image()
+        };
+        
+        let bala = null;
+        let existe_bala = false;
+
+        diana.imagen.src = "images/diana.png"; // Subimos la imagen
+
+        function pintarJugador(){
+            ctx.fillStyle = 'red';
+            ctx.fillRect(p1.x,p1.y,p1.w,p1.h); //rect para cuadrados
+        };
+
+        function pintarCirculo(){
+           if(existe_bala){
+            bala.x = bala.x + bala.v;
+            ctx.fillStyle = 'black';
+            ctx.beginPath(); //Crea una nueva linea o párrafo
+            ctx.arc(bala.x, bala.y, c1.r, c1.s, c1.e); //arc o arcTo para circulos
+            ctx.fill(); //Rellena el circulo
+            ctx.stroke(); //Pinta la linea del circulo
+
+            //si nos salimos del canvas la bala desaparece
+            if((existe_bala) && (bala.x > canvas.width)){
+                existe_bala = false;
+            }};
+        };
+
+        function pintarDiana(){
+            ctx.drawImage(diana.imagen,diana.x,diana.y,diana.w,diana.h);
+        };
+        //diana.imagen.onload = function(){pintarDiana()}; //Cargamos la imagen
+
+        document.addEventListener('keydown',(e) => {
+            if(e.key === 'ArrowUp'){
+                p1.y = p1.y - p1.paso;
+            }
+            else if(e.key === 'ArrowDown'){
+                p1.y = p1.y + p1.paso;
+            }
+            else if(e.code == 'Space'){
+                if(!existe_bala){
+                    existe_bala = true;
+                    bala = {
+                        x: p1.x + p1.w,
+                        y: p1.y,
+                        v: 7 //velocidad de la bala o circulo en pixeles
+                    }
+                }
+            }
+        });
+
+        function bucleJuego(){
+            //borrar
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+
+            pintarJugador();
+            pintarDiana();
+            pintarCirculo();
+
+            //Generar bucle
+            requestAnimationFrame(bucleJuego);
+        };
+
+        //ArranqueJuego
+        bucleJuego();
+
+    </script>
+</body>
+</html>
