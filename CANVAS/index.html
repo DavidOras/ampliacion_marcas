@@ -12,10 +12,18 @@
             display: block;
             margin: 0 auto;
         }
+
+        #b1{
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <button id="b1">Dame</button>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -63,6 +71,15 @@
             ctx.fill(); //Rellena el circulo
             ctx.stroke(); //Pinta la linea del circulo
 
+            //hay colision con diana
+
+            if((bala.x >=diana.x + 20 && bala.x <= diana.x + 30) && (bala.y >=diana.y + 20 && bala.y <= diana.y + 30)){
+                console.log("100 puntos");
+            }
+            else if((bala.x >=diana.x && bala.x <= diana.x + diana.w) && (bala.y >=diana.y && bala.y <= diana.y + diana.h)){
+                console.log("50 puntos");
+            }
+
             //si nos salimos del canvas la bala desaparece
             if((existe_bala) && (bala.x > canvas.width)){
                 existe_bala = false;
@@ -92,6 +109,17 @@
                 }
             }
         });
+
+        document.getElementById('b1').addEventListener('click',() =>{
+            if(!existe_bala){
+                    existe_bala = true;
+                    bala = {
+                        x: p1.x + p1.w,
+                        y: p1.y,
+                        v: 7 //velocidad de la bala o circulo en pixeles
+                    }
+                }
+        })
 
         function bucleJuego(){
             //borrar
