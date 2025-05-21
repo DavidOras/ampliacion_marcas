@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>El Escondite Inglés</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #048014;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    h1 {
+      margin-top: 20px;
+      color: #333;
+      font-size: 2em;
+    }
+
+    #menuInicio {
+      margin-top: 20px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .camino {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 15px;
+      width: 100%;
+      max-width: 1200px;
+      display: none; 
+    }
+    .casilla {
+      height: 50px;
+      border: 2px solid #444343;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #fff;
+      border-radius: 8px;
+    }
+    .casilla:nth-child(odd) {
+      background-color: white;
+    }
+    .casilla:nth-child(even) {
+      background-color: red;
+    }
+    .casilla:last-child {
+      background-image: url('./images/bandera.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+    .jugador {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      text-align: center;
+      font-size: 12px;
+      color: white;
+    }
+    .jugador0 { background-color: rgb(0, 0, 0); }
+    .jugador1 { background-color: green; }
+    .jugador2 { background-color: blue; }
+    .jugador3 { background-color: orange; }
+    .jugador4 { background-color: purple; }
+    .botones {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      display: none;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .info {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 16px;
+      color: #555;
+      display: none;
+    }
+    .carta {
+      width: 50px;
+      height: 70px;
+      margin-top: 10px;
+      margin-left: 45px;
+      border-radius: 5px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .carta img {
+      width: 100%;
+      height: 100%;
+      display: none;
+    }
+    .carta .frente {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>El Escondite Inglés</h1>
+  
+  <div id="menuInicio">
+    <h2>Seleccione el número de jugadores</h2>
+    <select id="numHumanos">
+      <option value="1" selected>1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+    <button id="comenzar">Comenzar Juego</button>
+  </div>
+  
+  <div class="camino" id="camino"></div>
+  <div class="botones" id="acciones"></div>
+  <div class="info" id="info"></div>
+
+<script>
+  const totalPlayers = 5;
+  let jugadores = [];
+  let dadosNegrosSalidos = [];
+  const camino = Array.from({ length: 10 }, () => []);
+
+  const iniciarJuego = (numHumanos) => {
+    jugadores = Array.from({ length: totalPlayers }, (_, idx) => {
+      return {
+        pos: 0,
+        corazon: false,
+        accion: null,
+        id: idx,
+        isBot: idx >= numHumanos
+      }
+    });
+    document.getElementById('menuInicio').style.display = 'none';
+    document.getElementById('camino').style.display = 'grid';
+    document.getElementById('acciones').style.display = 'flex';
+    document.getElementById('info').style.display = 'block';
+    renderCamino();
+    renderAcciones();
+  };
+
+  const renderCamino = () => {
+    const container = document.getElementById('camino');
+    container.innerHTML = '';
+    camino.forEach((_, i) => {
+      const casilla = document.createElement('div');
+      casilla.className = 'casilla';
+      jugadores.forEach(j => {
+        if (j.pos === i) {
+          const div = document.createElement('div');
+          div.className = `jugador jugador${j.id}`;
+          div.textContent = j.corazon ? '♥' : j.id;
+          casilla.appendChild(div);
+        }
+      });
+      container.appendChild(casilla);
+    });
+  };
+
+  const renderAcciones = () => {
+    const acciones = document.getElementById('acciones');
+    acciones.innerHTML = '';
+    jugadores.forEach(j => {
+      const cont = document.createElement('div');
+      if (!j.isBot) {
+        cont.innerHTML = `<strong>Jugador ${j.id}</strong><br>
+          <button onclick="elegir(${j.id}, 'andar')">Andar</button>
+          <button onclick="elegir(${j.id}, 'parar')">Pararse</button>
+          <div class="carta" id="carta${j.id}">
+            <img src="images/frente${j.id}.png" class="frente">
+            <img src="images/trasera${j.id}.png" class="trasera" style="display: none;">
+          </div>`;
+      } else {
+        const botAction = Math.random() < 0.5 ? 'andar' : 'parar';
+        j.accion = botAction;
+        cont.innerHTML = `<strong>Bot ${j.id}</strong><br>Acción: ${botAction}`;
+      }
+      acciones.appendChild(cont);
+    });
+    if (jugadores.every(j => j.accion !== null)) {
+      setTimeout(turno, 500);
+    }
+  };
+
+  const elegir = (jugador, accion) => {
+    jugadores[jugador].accion = accion;
+    const carta = document.getElementById(`carta${jugador}`);
+    if (accion === 'andar') {
+      carta.querySelector('.frente').style.display = 'block';
+      carta.querySelector('.trasera').style.display = 'none';
+    } else {
+      carta.querySelector('.frente').style.display = 'none';
+      carta.querySelector('.trasera').style.display = 'block';
+    }
+    if (jugadores.every(j => j.accion !== null)) turno();
+  };
+
+  const sacarDado = () => {
+    const dados = ['negro1', 'negro2', 'negro3', 'rojo'];
+    return dados[Math.floor(Math.random() * dados.length)];
+  };
+
+  const tirarDado = tipo => {
+    const dados = {
+      negro1: [1, 1, 1, 1, 2, 2],
+      negro2: [1, 1, 1, 1, 0, 0],
+      negro3: [1, 1, 0, 0, 0, 0],
+      rojo:   [1, 1, 1, 1, 1, 0]
+    };
+    return dados[tipo][Math.floor(Math.random() * 6)];
+  };
+
+  const finalizarJuego = (jugadorGanador) => {
+    document.getElementById('acciones').style.display = 'none';
+    document.getElementById('info').innerHTML += `<h2>🎉 ¡Jugador ${jugadorGanador.id} ha ganado! 🎉</h2>`;
+  };
+
+  const turno = () => {
+    const info = document.getElementById('info');
+    info.innerHTML = '';
+    const dado = sacarDado();
+    info.innerHTML += `Se sacó un dado: <strong>${dado}</strong><br>`;
+
+    if (dado === 'rojo') {
+      jugadores.forEach(j => {
+        if (j.accion === 'parar' && !j.corazon) {
+          j.corazon = true;
+          info.innerHTML += `Jugador ${j.id} parado recibe un corazón ♥<br>`;
+        } else if (j.accion === 'andar') {
+          const retroceso = tirarDado('rojo');
+          j.pos = Math.max(0, j.pos - retroceso);
+          info.innerHTML += `Jugador ${j.id} retrocede ${retroceso} casillas<br>`;
+        }
+        j.accion = null;
+      });
+      dadosNegrosSalidos = [];
+      info.innerHTML += '<em>Se repone la bolsa de dados.</em><br>';
+    } else if (dado.startsWith('negro')) {
+      dadosNegrosSalidos.push(dado);
+      jugadores.forEach(j => {
+        if (j.accion === 'andar') {
+          const avance = tirarDado(dado);
+          j.pos = Math.min(camino.length - 1, j.pos + avance);
+          info.innerHTML += `Jugador ${j.id} avanza ${avance} casillas<br>`;
+        }
+        j.accion = null;
+      });
+      if (dadosNegrosSalidos.length === 3) {
+        dadosNegrosSalidos = [];
+        info.innerHTML += '<em>Se repone la bolsa de dados.</em><br>';
+      }
+    }
+
+    renderCamino();
+
+    const casillaFinal = camino.length - 1;
+    const ganador = jugadores.find(j => j.pos === casillaFinal);
+    if (ganador) {
+      finalizarJuego(ganador);
+      return;
+    }
+
+    renderAcciones();
+  };
+
+  document.getElementById('comenzar').addEventListener('click', () => {
+    const numHumanos = parseInt(document.getElementById('numHumanos').value);
+    iniciarJuego(numHumanos);
+  });
+</script>
+
+</body>
+</html>
